@@ -84,7 +84,7 @@ export function design(raw){
     const mid=(o.taps-1)/2,w=2*Math.PI*o.fc/o.fs;
     let b=Array.from({length:o.taps},(_,i)=>{const x=i-mid;let v=x===0?w/Math.PI:Math.sin(w*x)/(Math.PI*x);if(o.type==='highpass')v=(x===0?1:0)-v;return v*(0.54-0.46*Math.cos(2*Math.PI*i/(o.taps-1)))});
     const norm=b.reduce((s,x,i)=>s+x*(o.type==='highpass'?(-1)**i:1),0);b=b.map(x=>x*amplitude/Math.abs(norm));
-    const z=roots(b);return {kind:'fir',z,p:[],k:b.find(x=>Math.abs(x)>=1e-16),b,a:[1],sos:[],fs:o.fs};
+    const delay=b.findIndex(x=>Math.abs(x)>=1e-16),z=roots(b);return {kind:'fir',z,p:[],k:b[delay],delay,b,a:[1],sos:[],fs:o.fs};
   }
   if(o.family==='svf'){
     const g=Math.tan(Math.PI*o.fc/o.fs),r=1/o.q,d=1+r*g+g*g;
@@ -118,6 +118,6 @@ export function moveRoot(model,kind,index,value){
   if(Math.abs(old.im)<1e-8)value.im=0;
   else {const mate=list.findIndex((v,i)=>i!==index&&abs(sub(v,conj(old)))<1e-6);if(mate<0)throw Error('Conjugate root missing');list[mate]=conj(value)}
   list[index]=value;const z=kind==='z'?list:model.z,p=kind==='p'?list:model.p;
-  if(model.kind==='fir'){const b=polynomial(z).map(x=>x*model.k);return {...model,z,b}}
+  if(model.kind==='fir'){const b=[...Array(model.delay||0).fill(0),...polynomial(z).map(x=>x*model.k)];return {...model,z,b}}
   return fromRoots(z,p,model.k,model.fs);
 }

@@ -4,6 +4,8 @@ A browser-based DSP workbench for designing IIR/FIR audio filters, editing poles
 
 **[Open the workbench](https://djshellshoxxx.github.io/Filter-Coefficient-Z-Plane-Visualizer/)** · **[Implementation specification](docs/SPEC.md)**
 
+![Z-Lab filter design workbench](docs/preview.jpg)
+
 ## Features
 
 - Butterworth, Chebyshev I/II, elliptic, bilinear state-variable, and Hamming-windowed FIR designs.

@@ -1,5 +1,5 @@
 import {defaults,design,fromRoots,polynomial} from './dsp.js';
-export function pack(params,model,custom=false){return {version:1,params,...(custom?{custom:{kind:model.kind,z:model.z,p:model.p,k:model.k}}:{})}}
+export function pack(params,model,custom=false){return {version:1,params,...(custom?{custom:{kind:model.kind,z:model.z,p:model.p,k:model.k,delay:model.delay||0}}:{})}}
 export function unpack(data){
   if(!data||data.version!==1||!data.params)throw Error('Unsupported design format');
   const params={...defaults};for(const k of Object.keys(defaults))if(k in data.params)params[k]=data.params[k];
@@ -10,7 +10,7 @@ export function unpack(data){
     if(!['iir','fir'].includes(kind)||kind!==model.kind||!Array.isArray(z)||!Array.isArray(p)||z.length>62||p.length>8||!Number.isFinite(k)||Math.abs(k)>1e12)throw Error('Invalid custom filter');
     for(const v of [...z,...p])if(!v||!Number.isFinite(v.re)||!Number.isFinite(v.im)||Math.abs(v.re)>100||Math.abs(v.im)>100)throw Error('Invalid root');
     polynomial(z);polynomial(p);
-    if(kind==='fir'){if(p.length||z.length<1)throw Error('Invalid FIR design');model={...model,z,p,k,b:polynomial(z).map(x=>x*k)}}else {if(p.length<1||z.length>p.length)throw Error('Invalid IIR design');model=fromRoots(z,p,k,params.fs)}
+    if(kind==='fir'){const delay=data.custom.delay||0;if(p.length||z.length<1||!Number.isInteger(delay)||delay<0||delay+z.length>62)throw Error('Invalid FIR design');model={...model,z,p,k,delay,b:[...Array(delay).fill(0),...polynomial(z).map(x=>x*k)]}}else {if(p.length<1||z.length>p.length)throw Error('Invalid IIR design');model=fromRoots(z,p,k,params.fs)}
   }
   return {params,model,custom:!!data.custom};
 }
